@@ -1,15 +1,16 @@
 # GitHub AI Radar
 
-A dependency-free discovery engine for useful AI agents, infrastructure, and the creators building them. It deliberately searches beyond the GitHub front page to surface established projects, fast risers, and low-star hidden gems.
+A dependency-free discovery engine for useful AI agents and infrastructure, focused by default on Web3, crypto trading, DeFi, quantitative finance, and hedge-fund tooling. It deliberately searches beyond the GitHub front page to surface fast risers and low-star hidden gems.
 
 ## What makes the radar different
 
-- **23 discovery lanes:** established projects plus rising and fresh searches across agentic systems, multi-agent orchestration, coding agents, computer use, MCP, voice, memory, observability, local inference, and embodied AI.
+- **23 focused discovery lanes:** crypto agents, trading agents, quantitative strategies, DeFi, on-chain systems, market making, hedge funds, portfolios, prediction markets, plus adjacent AI infrastructure.
 - **Real momentum:** saves local star snapshots and measures actual gains between scans at least six hours apart.
 - **Creator radar:** groups projects by owner and scores emerging builders with repeat signals across a portfolio.
 - **Diverse results:** caps any one creator or category so famous frameworks cannot monopolize the report.
 - **Useful-project signals:** rewards recent code pushes, licensing, language, topics, forks, and a usable project description; penalizes archives, forks, and list/tutorial repositories.
 - **Honest labels:** distinguishes observed star velocity from the lifetime estimate used before enough history exists.
+- **Small-cap by default:** results are capped at 10,000 stars so a famous protocol cannot drown out a promising newcomer.
 
 ## Quick start
 
@@ -33,11 +34,19 @@ GitHub allows unauthenticated searches at a much lower rate, so the broad scan i
 
 The default output contains repository links only. Add `--include-creators` when you also want owner/account analysis.
 
+The default focus is Web3/finance. Use `--focus general --max-stars 0` for the original broad AI radar, or lower the cap with `--max-stars 2500` for genuinely early projects.
+
 ## Useful scans
 
 ```bash
 # Focus entirely on emerging project links
 python3 -m github_ai_radar --mode emerging
+
+# Strict early-stage crypto/quant scan
+python3 -m github_ai_radar --mode emerging --max-stars 2500 --min-stars 10
+
+# Broader non-Web3 AI scan, with no star ceiling
+python3 -m github_ai_radar --focus general --max-stars 0
 
 # Repository links plus creator analysis
 python3 -m github_ai_radar --mode emerging --include-creators

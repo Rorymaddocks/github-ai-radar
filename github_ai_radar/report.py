@@ -36,10 +36,16 @@ def select_sections(items: list[RankedRepository], limit: int, mode: str) -> lis
     hidden_gems = diverse([item for item in items if item.signal == "hidden gem"], limit)
     established = diverse([item for item in items if item.signal == "established"], limit)
     if mode == "emerging":
-        return [("Breakouts and fast risers", breakouts), ("Hidden gems", hidden_gems)]
+        return [(heading, rows) for heading, rows in (("Breakouts and fast risers", breakouts), ("Hidden gems", hidden_gems)) if rows]
     if mode == "established":
-        return [("Established projects", established)]
-    return [("Breakouts and fast risers", breakouts), ("Hidden gems", hidden_gems), ("Established projects", established)]
+        return [("Established projects", established)] if established else []
+    return [
+        (heading, rows) for heading, rows in (
+            ("Breakouts and fast risers", breakouts),
+            ("Hidden gems", hidden_gems),
+            ("Established projects", established),
+        ) if rows
+    ]
 
 
 def _velocity(item: RankedRepository) -> str:

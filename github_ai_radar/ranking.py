@@ -13,6 +13,8 @@ LOW_UTILITY_MARKERS = {
 }
 
 CATEGORY_MARKERS = {
+    "Trading / quant": ("trading", "quant", "algorithmic", "market-making", "market making", "hedge fund", "portfolio", "prediction market"),
+    "Crypto / DeFi": ("crypto", "cryptocurrency", "defi", "web3", "blockchain", "ethereum", "solana", "onchain"),
     "Computer use": ("computer-use", "browser-use", "browser agent", "web agent"),
     "Coding agent": ("coding-agent", "coding agent", "coding-assistant", "ai-coding", "code-generation", "copilot"),
     "Voice agent": ("voice-agent", "voice agent", "realtime-agent", "speech-to-speech"),

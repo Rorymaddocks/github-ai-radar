@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .creators import rank_creators
-from .discovery import SearchSpec, append_filters, default_specs
+from .discovery import SearchSpec, append_filters, default_specs, is_focus_relevant
 from .github import GitHubClient, GitHubError
 from .history import SnapshotStore
 from .ranking import rank_all
@@ -21,6 +21,8 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--limit", type=int, default=20, help="results per report section (default: 20)")
     result.add_argument("--per-query", type=int, default=20, help="repositories fetched per search lane (default: 20)")
     result.add_argument("--min-stars", type=int, default=3, help="final global star floor (default: 3)")
+    result.add_argument("--max-stars", type=int, default=10_000, help="maximum stars per result; 0 means unlimited (default: 10,000)")
+    result.add_argument("--focus", choices=("web3", "general"), default="web3", help="discovery domain (default: web3)")
     result.add_argument("--max-age-days", type=int, default=0, help="only include repos created within N days; 0 disables")
     result.add_argument("--language", help="filter by GitHub language, e.g. Python or TypeScript")
     result.add_argument("--mode", choices=("all", "emerging", "established"), default="all")
@@ -38,13 +40,21 @@ def parser() -> argparse.ArgumentParser:
 
 
 def build_specs(args: argparse.Namespace, now: datetime) -> list[SearchSpec]:
-    specs = [] if args.only_custom else default_specs(now)
+    specs = [] if args.only_custom else default_specs(
+        now, focus=getattr(args, "focus", "web3"), max_stars=getattr(args, "max_stars", 10_000)
+    )
     if getattr(args, "quick", False):
         specs = [spec for spec in specs if not spec.lane.startswith("fresh/")]
     specs.extend(SearchSpec("custom", query) for query in args.query)
     if not specs:
         raise ValueError("At least one --query is required with --only-custom")
-    return [append_filters(spec, language=args.language, max_age_days=args.max_age_days, now=now) for spec in specs]
+    return [append_filters(
+        spec,
+        language=args.language,
+        max_age_days=args.max_age_days,
+        now=now,
+        max_stars=getattr(args, "max_stars", 10_000),
+    ) for spec in specs]
 
 
 def build_queries(args: argparse.Namespace, now: datetime) -> list[str]:
@@ -67,7 +77,7 @@ def github_token() -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
-    if args.limit < 1 or not 1 <= args.per_query <= 100 or args.min_stars < 0 or args.max_age_days < 0 or args.creator_profiles < 0:
+    if args.limit < 1 or not 1 <= args.per_query <= 100 or args.min_stars < 0 or args.max_stars < 0 or args.max_age_days < 0 or args.creator_profiles < 0:
         parser().error("limits and star/age values must be positive (per-query maximum is 100)")
     now = datetime.now(timezone.utc)
     try:
@@ -82,7 +92,13 @@ def main(argv: list[str] | None = None) -> int:
     for spec in specs:
         try:
             for repo in client.search(spec.query, per_page=args.per_query, sort=spec.sort):
-                if repo.stars >= args.min_stars and not repo.archived and not repo.is_fork:
+                if (
+                    repo.stars >= args.min_stars
+                    and (not args.max_stars or repo.stars <= args.max_stars)
+                    and is_focus_relevant(repo, args.focus)
+                    and not repo.archived
+                    and not repo.is_fork
+                ):
                     key = repo.full_name.lower()
                     found[key] = repo
                     lanes.setdefault(key, set()).add(spec.lane)

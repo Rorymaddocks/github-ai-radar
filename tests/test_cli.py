@@ -11,7 +11,7 @@ class QueryTests(unittest.TestCase):
     def test_filters_are_appended(self):
         args = SimpleNamespace(only_custom=True, query=["topic:ai"], language="Python", max_age_days=30)
         queries = build_queries(args, datetime(2026, 9, 3, tzinfo=timezone.utc))
-        self.assertEqual(queries, ["topic:ai language:Python created:>=2026-08-04"])
+        self.assertEqual(queries, ["topic:ai language:Python created:>=2026-08-04 stars:<=10000"])
 
     def test_custom_only_requires_query(self):
         args = SimpleNamespace(only_custom=True, query=[], language=None, max_age_days=0)
