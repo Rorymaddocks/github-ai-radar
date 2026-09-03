@@ -1,8 +1,8 @@
 __pycache__/
 *.py[cod]
 .radar-cache/
+.radar-history.json
 .venv/
 dist/
 *.egg-info/
 reports/
-

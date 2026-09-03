@@ -23,6 +23,11 @@ def repo(name: str, stars: int, created: str, updated: str, **overrides) -> Repo
         updated_at=datetime.fromisoformat(updated).replace(tzinfo=timezone.utc),
         archived=False,
         homepage="https://example.com",
+        owner_login=name.split("/", 1)[0],
+        owner_url=f"https://github.com/{name.split('/', 1)[0]}",
+        owner_type="Organization",
+        pushed_at=datetime.fromisoformat(updated).replace(tzinfo=timezone.utc),
+        is_fork=False,
     )
     values.update(overrides)
     return Repository(**values)

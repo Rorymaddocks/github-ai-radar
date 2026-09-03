@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "github-ai-radar"
-version = "0.1.0"
+version = "0.2.0"
 description = "Find established and fast-rising open-source AI agents and tools on GitHub."
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -15,4 +15,3 @@ ai-radar = "github_ai_radar.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["github_ai_radar*"]
-

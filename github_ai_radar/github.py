@@ -10,10 +10,11 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from .models import Repository
+from .models import CreatorProfile, Repository
 
 
 API_URL = "https://api.github.com/search/repositories"
+USERS_URL = "https://api.github.com/users"
 
 
 class GitHubError(RuntimeError):
@@ -26,11 +27,16 @@ class GitHubClient:
     cache_dir: Path = Path(".radar-cache")
     cache_ttl_seconds: int = 3600
 
-    def search(self, query: str, *, per_page: int = 50, page: int = 1) -> list[Repository]:
-        params = urlencode({"q": query, "sort": "stars", "order": "desc", "per_page": per_page, "page": page})
+    def search(self, query: str, *, per_page: int = 50, page: int = 1, sort: str = "stars") -> list[Repository]:
+        if sort not in {"stars", "forks", "help-wanted-issues", "updated"}:
+            raise ValueError(f"Unsupported repository sort: {sort}")
+        params = urlencode({"q": query, "sort": sort, "order": "desc", "per_page": per_page, "page": page})
         url = f"{API_URL}?{params}"
         payload = self._get_json(url)
         return [Repository.from_api(item) for item in payload.get("items", [])]
+
+    def creator_profile(self, login: str) -> CreatorProfile:
+        return CreatorProfile.from_api(self._get_json(f"{USERS_URL}/{login}"))
 
     def _get_json(self, url: str) -> dict[str, Any]:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
