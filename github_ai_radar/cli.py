@@ -24,6 +24,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--max-age-days", type=int, default=0, help="only include repos created within N days; 0 disables")
     result.add_argument("--language", help="filter by GitHub language, e.g. Python or TypeScript")
     result.add_argument("--mode", choices=("all", "emerging", "established"), default="all")
+    result.add_argument("--include-creators", action="store_true", help="also show creator/account analysis")
     result.add_argument("--quick", action="store_true", help="skip fresh activity-sorted lanes (15 instead of 23 searches)")
     result.add_argument("--query", action="append", default=[], help="additional GitHub search query; may be repeated")
     result.add_argument("--only-custom", action="store_true", help="run only queries supplied with --query")
@@ -98,26 +99,29 @@ def main(argv: list[str] | None = None) -> int:
     history = SnapshotStore(args.history)
     observations = {} if args.no_history else history.observations(repositories, now)
     ranked = rank_all(repositories, now=now, lanes=lanes, observations=observations)
-    creators = rank_creators(ranked)
-    profiles = {}
-    emerging_creators = [creator for creator in creators if creator.breakout_projects]
-    for creator in emerging_creators[: args.creator_profiles]:
-        try:
-            profiles[creator.login.lower()] = client.creator_profile(creator.login)
-        except GitHubError as exc:
-            failures.append(f"creator/{creator.login}: {exc}")
-    if profiles:
-        creators = rank_creators(ranked, profiles)
-    print(render_terminal(ranked, creators, args.limit, args.mode))
+    creators = []
+    if args.include_creators:
+        creators = rank_creators(ranked)
+        profiles = {}
+        emerging_creators = [creator for creator in creators if creator.breakout_projects]
+        for creator in emerging_creators[: args.creator_profiles]:
+            try:
+                profiles[creator.login.lower()] = client.creator_profile(creator.login)
+            except GitHubError as exc:
+                failures.append(f"creator/{creator.login}: {exc}")
+        if profiles:
+            creators = rank_creators(ranked, profiles)
+    visible_creators = creators
+    print(render_terminal(ranked, visible_creators, args.limit, args.mode))
     if not args.no_history:
         history.record(repositories, now)
         if not observations:
             print(f"\nBaseline saved to {args.history}; a scan 6+ hours later enables observed momentum.")
     if args.json:
-        write_json(ranked, creators, args.json, generated_at=now)
+        write_json(ranked, visible_creators, args.json, generated_at=now)
         print(f"Wrote JSON: {args.json}")
     if args.markdown:
-        write_markdown(ranked, creators, args.markdown, generated_at=now, limit=args.limit, mode=args.mode)
+        write_markdown(ranked, visible_creators, args.markdown, generated_at=now, limit=args.limit, mode=args.mode)
         print(f"Wrote Markdown: {args.markdown}")
     if failures:
         print(f"\nCompleted with {len(failures)} warning(s):", file=sys.stderr)

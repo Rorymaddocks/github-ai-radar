@@ -64,7 +64,7 @@ def render_terminal(items: list[RankedRepository], creators: list[Creator], limi
                 f"    {repo.html_url}",
             ])
         lines.append("")
-    if mode != "established":
+    if mode != "established" and creators:
         lines.extend(["Emerging creators", "================="])
         emerging_creators = [creator for creator in creators if creator.breakout_projects]
         for index, creator in enumerate(emerging_creators[: min(10, limit)], 1):
@@ -107,7 +107,7 @@ def write_markdown(
                 f"{repo.stars:,} | {_velocity(item)} | {item.category} | {reasons} |"
             )
         lines.append("")
-    if mode != "established":
+    if mode != "established" and creators:
         lines.extend([
             "## Emerging creators", "",
             "| # | Creator | Score | Followers | Relevant projects | Emerging signals | Best project |",

@@ -31,11 +31,16 @@ ai-radar --limit 20
 
 GitHub allows unauthenticated searches at a much lower rate, so the broad scan is designed for authenticated use. Responses are cached for one hour in `.radar-cache/`; star history is stored locally in `.radar-history.json`. Neither file is committed.
 
+The default output contains repository links only. Add `--include-creators` when you also want owner/account analysis.
+
 ## Useful scans
 
 ```bash
-# Focus entirely on emerging projects and creators
+# Focus entirely on emerging project links
 python3 -m github_ai_radar --mode emerging
+
+# Repository links plus creator analysis
+python3 -m github_ai_radar --mode emerging --include-creators
 
 # Generate a shareable emerging-tech report
 python3 -m github_ai_radar --mode emerging --markdown reports/rising.md

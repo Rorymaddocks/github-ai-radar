@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 import unittest
 
-from github_ai_radar.report import select_sections
+from github_ai_radar.report import render_terminal, select_sections
 from github_ai_radar.ranking import rank
 from test_ranking import repo
 
@@ -16,6 +16,12 @@ class ReportTests(unittest.TestCase):
         sections = dict(select_sections([popular, gem], 10, "emerging"))
         self.assertIn("Hidden gems", sections)
         self.assertEqual(sections["Hidden gems"][0].repository.full_name, "new/gem")
+
+    def test_default_report_does_not_show_creator_links(self):
+        item = rank(repo("new/gem", 50, "2026-08-01", "2026-09-02"), now=NOW)
+        output = render_terminal([item], [], 10, "emerging")
+        self.assertNotIn("Emerging creators", output)
+        self.assertIn("https://github.com/new/gem", output)
 
 
 if __name__ == "__main__":
